@@ -10,7 +10,6 @@ japanese_law_xml_schema = "4.0.2"
 lawscape-core = {path = "../lawscape-core"}
 regex = "1.11.1"
 serde_json = "1.0.139"
-tokio-stream = "0.1.17"
 
 [dependencies.tokio]
 workspace = true
@@ -27,3 +26,5 @@ workspace = true
 [dependencies.tracing-subscriber]
 workspace = true
 
+[dependencies.tokio-stream]
+workspace = true

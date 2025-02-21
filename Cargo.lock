@@ -960,6 +960,7 @@ dependencies = [
  "axum",
  "chrono",
  "clap",
+ "lawscape-core",
  "reqwest",
  "serde",
  "thiserror 2.0.11",
