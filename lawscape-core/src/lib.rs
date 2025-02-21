@@ -85,15 +85,19 @@ impl LegalDocumentsRegistory {
         Ok(())
     }
 
-    /// 検索用レジストリから値を取得する
-    pub async fn search(&self, word: &str) -> Result<Vec<LegalDocument>, LawscapeCoreError> {
+    /// 検索用レジストリから値を取得する。cancell_scoreは打ち切り値。
+    pub async fn search(
+        &self,
+        word: &str,
+        cancell_score: f64,
+    ) -> Result<Vec<LegalDocument>, LawscapeCoreError> {
         let index = self.meilisearch_client.index(REGISTORY_INDEX_NAME);
         let mut result = index
             .search()
             .with_query(word)
             .with_limit(100000)
             .with_locales(&["jpn"])
-            .with_ranking_score_threshold(0.5)
+            .with_ranking_score_threshold(cancell_score)
             .execute::<LegalDocument>()
             .await
             .map_err(|_| LawscapeCoreError::MeilisearchSearchError)?

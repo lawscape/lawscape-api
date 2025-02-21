@@ -21,6 +21,7 @@ pub async fn app(
     bind: SocketAddr,
     meilisearch_url: String,
     meilisearch_master_key: String,
+    search_cancell_score: f64,
 ) -> Result<(), ApiServerError> {
     init_logger().await?;
 
@@ -37,7 +38,12 @@ pub async fn app(
             get(move |query: Query<HashMap<String, String>>| {
                 let search_word = query.0.get("word").cloned().unwrap_or_default();
                 info!("GET /v1/search: {search_word}");
-                v1_get_search(search_word, meilisearch_url, meilisearch_master_key)
+                v1_get_search(
+                    search_word,
+                    meilisearch_url,
+                    meilisearch_master_key,
+                    search_cancell_score,
+                )
             }),
         )
         .layer(
@@ -64,6 +70,7 @@ async fn v1_get_search(
     word: String,
     meilisearch_url: String,
     meilisearch_master_key: String,
+    search_cancell_score: f64,
 ) -> Result<Json<Vec<LegalDocumentDependencies>>, ApiServerError> {
     let search_registry = LegalDocumentsRegistory::new(&meilisearch_url, &meilisearch_master_key)
         .map_err(|_| ApiServerError::MeilisearchError)?;
@@ -71,7 +78,7 @@ async fn v1_get_search(
         Err(ApiServerError::SearchError)
     } else {
         let search_result = search_registry
-            .search(&word)
+            .search(&word, search_cancell_score)
             .await
             .map_err(|_| ApiServerError::SearchError)?;
         let dependencies_result = lawscape_core::analyze_search_result_dependencies(&search_result);

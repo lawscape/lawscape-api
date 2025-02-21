@@ -9,14 +9,21 @@ mod app;
 
 #[derive(Debug, Parser)]
 struct AppArg {
+    /// 検索エンジンのAPIのURL
     #[arg(long, env)]
     pub meilisearch_url: String,
+    /// 検索エンジンのマスターキー
     #[arg(long, env, hide_env_values = true)]
     pub meilisearch_master_key: String,
+    /// サーバーを動かすアドレス
     #[arg(long)]
     pub bind: SocketAddr,
+    /// 動かすスレッド数
     #[arg(long, env = "API_SERVER_THREADS")]
     pub threads: Option<usize>,
+    /// 探索を打ち切る閾値
+    #[arg(long)]
+    pub search_cancell_score: f64,
 }
 
 fn main() -> Result<(), Box<dyn std::error::Error>> {
@@ -37,6 +44,7 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
             app_args.bind,
             app_args.meilisearch_url,
             app_args.meilisearch_master_key,
+            app_args.search_cancell_score,
         ))
         .map_err(|_| ApiServerError::TokioRuntime)?;
     Ok(())
