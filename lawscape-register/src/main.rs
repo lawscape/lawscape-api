@@ -160,7 +160,10 @@ async fn main() -> Result<()> {
                     })
                     .collect::<Vec<LegalDocument>>();
             info!("[END] parsing law: {id_str}");
-            info!("[START] register law: {id_str}");
+            info!(
+                "[START] register law: {id_str}, article size: {}",
+                article_list.len()
+            );
             legal_document_registory.add_data(&article_list).await?;
             info!("[END] register law: {id_str}");
         }
