@@ -49,9 +49,14 @@ pub async fn app(
     let listener = tokio::net::TcpListener::bind(bind)
         .await
         .map_err(|_| ApiServerError::AxumError)?;
+
+    info!("server start");
+
     axum::serve(listener, app)
         .await
         .map_err(|_| ApiServerError::AxumError)?;
+
+    info!("server down");
     Ok(())
 }
 
