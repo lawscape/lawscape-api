@@ -98,7 +98,7 @@ impl LegalDocumentsRegistory {
             .await
             .map_err(|_| LawscapeCoreError::MeilisearchSearchError)?
             .hits;
-        result.sort_by(|t1, t2| t1.ranking_score.partial_cmp(&t2.ranking_score).unwrap());
+        result.sort_by(|t1, t2| t2.ranking_score.partial_cmp(&t1.ranking_score).unwrap());
         let document_list = result
             .iter()
             .take(1000)
