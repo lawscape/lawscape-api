@@ -977,6 +977,7 @@ dependencies = [
  "jplaw_data_types",
  "meilisearch-sdk",
  "serde",
+ "serde_json",
  "thiserror 2.0.11",
 ]
 

@@ -5,6 +5,7 @@ edition = "2024"
 descrtiption = "lawscapeに必要なデータ型などを定義する"
 
 [dependencies]
+serde_json = "1.0.139"
 
 [dependencies.jplaw_data_types]
 workspace = true

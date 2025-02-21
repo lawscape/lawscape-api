@@ -88,18 +88,20 @@ impl LegalDocumentsRegistory {
     /// 検索用レジストリから値を取得する
     pub async fn search(&self, word: &str) -> Result<Vec<LegalDocument>, LawscapeCoreError> {
         let index = self.meilisearch_client.index(REGISTORY_INDEX_NAME);
-        let result = index
+        let mut result = index
             .search()
             .with_query(word)
-            .with_limit(1000)
+            .with_limit(100000)
             .with_locales(&["jpn"])
             .with_ranking_score_threshold(0.5)
             .execute::<LegalDocument>()
             .await
             .map_err(|_| LawscapeCoreError::MeilisearchSearchError)?
             .hits;
+        result.sort_by(|t1, t2| t1.ranking_score.partial_cmp(&t2.ranking_score).unwrap());
         let document_list = result
             .iter()
+            .take(1000)
             .map(|search_result| search_result.clone().result)
             .collect();
         Ok(document_list)
