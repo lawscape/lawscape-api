@@ -1,0 +1,19 @@
+[package]
+name = "lawscape-core"
+version = "0.1.0"
+edition = "2024"
+descrtiption = "lawscapeに必要なデータ型などを定義する"
+
+[dependencies]
+
+[dependencies.jplaw_data_types]
+workspace = true
+
+[dependencies.serde]
+workspace = true
+
+[dependencies.meilisearch-sdk]
+workspace = true
+
+[dependencies.thiserror]
+workspace = true

@@ -1,0 +1,23 @@
+[package]
+name = "lawscape-register"
+version = "0.1.0"
+edition = "2024"
+descrtiption = "meilisearchなどにデータを登録するためのスクリプト"
+
+[dependencies]
+anyhow = "1.0.96"
+japanese_law_xml_schema = "4.0.2"
+lawscape-core = {path = "../lawscape-core"}
+regex = "1.11.1"
+serde_json = "1.0.139"
+tokio-stream = "0.1.17"
+
+[dependencies.tokio]
+workspace = true
+
+[dependencies.jplaw_data_types]
+workspace = true
+
+[dependencies.clap]
+workspace = true
+
