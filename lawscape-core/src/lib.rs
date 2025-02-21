@@ -144,6 +144,9 @@ pub fn analyze_search_result_dependencies(
     for (i, (id, name, _)) in contents_list.iter().enumerate() {
         if let Some(name) = name {
             for (j, (id2, name2, documents2)) in contents_list.iter().enumerate() {
+                if id == id2 {
+                    continue;
+                };
                 // 法令名称が含まれるかどうかの判定
                 let mut is_contains = false;
                 if let Some(name2) = name2 {
