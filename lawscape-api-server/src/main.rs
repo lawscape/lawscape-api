@@ -13,7 +13,7 @@ struct AppArg {
     pub meilisearch_url: String,
     #[arg(long, env, hide_env_values = true)]
     pub meilisearch_master_key: String,
-    #[arg(long, env = "API_SERVER_PORT")]
+    #[arg(long)]
     pub bind: SocketAddr,
     #[arg(long, env = "API_SERVER_THREADS")]
     pub threads: Option<usize>,
