@@ -36,6 +36,7 @@ pub async fn app(
             "/v1/search",
             get(move |query: Query<HashMap<String, String>>| {
                 let search_word = query.0.get("word").cloned().unwrap_or_default();
+                info!("GET /v1/search: {search_word}");
                 v1_get_search(search_word, meilisearch_url, meilisearch_master_key)
             }),
         )
