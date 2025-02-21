@@ -21,3 +21,9 @@ workspace = true
 [dependencies.clap]
 workspace = true
 
+[dependencies.tracing]
+workspace = true
+
+[dependencies.tracing-subscriber]
+workspace = true
+

@@ -13,3 +13,5 @@ serde = { version = "1.0.217", features = ["derive"] }
 meilisearch-sdk = "0.28.0"
 jplaw_data_types = { git = "https://github.com/japanese-law-analysis/jplaw_tools.git", rev = "0.2.5" }
 clap = { version = "4.5.30", features = ["derive", "env"] }
+tracing = "0.1.41"
+tracing-subscriber = "0.3.19"
