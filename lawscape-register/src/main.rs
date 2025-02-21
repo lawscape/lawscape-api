@@ -151,7 +151,8 @@ async fn main() -> Result<()> {
                             .collect::<Vec<String>>()
                             .join("\n");
                         LegalDocument::Law(Law {
-                            id: id.clone(),
+                            id: format!("{id}"),
+                            law_id: id.clone(),
                             name: name.clone(),
                             index: result.article_index.clone(),
                             text,
@@ -185,7 +186,8 @@ async fn main() -> Result<()> {
         info!("[START] register precedent: {}", precedent_info.lawsuit_id);
         if let Some(text) = precedent.contents {
             let v = [LegalDocument::Precedent(Precedent {
-                id: precedent_info.clone(),
+                id: precedent_info.file_name(),
+                info: precedent_info.clone(),
                 text,
             })];
             legal_document_registory.add_data(&v).await?;

@@ -19,7 +19,8 @@ pub enum LawscapeCoreError {
 
 #[derive(Debug, Clone, Deserialize, Serialize, Hash, PartialEq, Eq)]
 pub struct Law {
-  pub id: LawId,
+  pub id: String,
+  pub law_id: LawId,
   pub name: String,
   pub index: ArticleIndex,
   pub text: String
@@ -28,7 +29,8 @@ pub struct Law {
 
 #[derive(Debug, Clone, Deserialize, Serialize, Hash, PartialEq, Eq)]
 pub struct Precedent {
-  pub id: PrecedentInfo,
+  pub id: String,
+  pub info: PrecedentInfo,
   pub text: String
 }
 
