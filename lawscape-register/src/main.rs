@@ -64,10 +64,10 @@ fn parse_date(str: &str) -> Result<Date> {
 #[derive(Debug, Parser)]
 struct AppArg {
     /// meilisearchのURL
-    #[arg(long, env)]
+    #[arg(long, env = "MEILISEARCH_URL")]
     pub meilisearch_url: String,
     /// meilisearchのmaster key
-    #[arg(long, env, hide_env_values = true)]
+    #[arg(long, env = "MEILISEARCH_MASTER_KEY", hide_env_values = true)]
     pub meilisearch_master_key: String,
     /// 法令データのXMLが入ったフォルダ
     #[arg(long)]
@@ -116,32 +116,32 @@ async fn main() -> Result<()> {
                 }
             }
         }
-        let law_file_name = patch_file
-            .expect("patch_file fields is empty")
-            .to_file_path();
-        let law_file_path = Path::new(&app_args.law_folder);
-        let law_file_path = law_file_path.join(&law_file_name);
-        let law_file_path = law_file_path.join(format!("{law_file_name}.xml"));
-        let mut law_xml_f = File::open(law_file_path).await?;
-        let mut law_xml_buf = Vec::new();
-        law_xml_f.read_to_end(&mut law_xml_buf).await?;
-        let law_data = japanese_law_xml_schema::parse_xml(&law_xml_buf)?;
-        let article_list = article::article_list_from_lawbody(&id_str, name, &law_data.law_body)
-            .iter()
-            .map(|result| {
-                let text = article::text_list_from_paragraph(&result.result)
+        if let Some(law_file_name) = patch_file.map(|p| p.to_file_path()) {
+            let law_file_path = Path::new(&app_args.law_folder);
+            let law_file_path = law_file_path.join(&law_file_name);
+            let law_file_path = law_file_path.join(format!("{law_file_name}.xml"));
+            let mut law_xml_f = File::open(law_file_path).await?;
+            let mut law_xml_buf = Vec::new();
+            law_xml_f.read_to_end(&mut law_xml_buf).await?;
+            let law_data = japanese_law_xml_schema::parse_xml(&law_xml_buf)?;
+            let article_list =
+                article::article_list_from_lawbody(&id_str, name, &law_data.law_body)
                     .iter()
-                    .map(|(_, text)| text.clone())
-                    .collect::<Vec<String>>()
-                    .join("\n");
-                Law {
-                    id: id.clone(),
-                    name: name.clone(),
-                    index: result.article_index.clone(),
-                    text,
-                }
-            })
-            .collect::<Vec<Law>>();
+                    .map(|result| {
+                        let text = article::text_list_from_paragraph(&result.result)
+                            .iter()
+                            .map(|(_, text)| text.clone())
+                            .collect::<Vec<String>>()
+                            .join("\n");
+                        Law {
+                            id: id.clone(),
+                            name: name.clone(),
+                            index: result.article_index.clone(),
+                            text,
+                        }
+                    })
+                    .collect::<Vec<Law>>();
+        }
     }
 
     // 検索エンジン用の判例データを生成する
@@ -170,7 +170,6 @@ async fn main() -> Result<()> {
         LegalDocumentsRegistory::new(&app_args.meilisearch_url, &app_args.meilisearch_master_key)?;
 
     //TODO
-
 
     Ok(())
 }
