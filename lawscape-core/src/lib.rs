@@ -10,10 +10,10 @@ use thiserror::Error;
 
 #[derive(Debug, Error)]
 pub enum LawscapeCoreError {
-    #[error("meilisearch client error")]
-    MeilisearchClientError,
-    #[error("meilisearch index error")]
-    MeilisearchIndexError,
+    #[error("meilisearch client error; {0}")]
+    MeilisearchClientError(Box<dyn std::error::Error + Send + Sync>),
+    #[error("meilisearch index error; {0}")]
+    MeilisearchIndexError(Box<dyn std::error::Error + Send + Sync>),
     #[error("meilisearch client error; {0}")]
     MeilisearchSearchError(Box<dyn std::error::Error + Send + Sync>),
 }
@@ -69,7 +69,7 @@ impl LegalDocumentsRegistory {
     /// 検索レジストリへのアクセスを生成
     pub fn new(meilisearch_url: &str, masterkey: &str) -> Result<Self, LawscapeCoreError> {
         let client = Client::new(meilisearch_url, Some(masterkey))
-            .map_err(|_| LawscapeCoreError::MeilisearchClientError)?;
+            .map_err(|e| LawscapeCoreError::MeilisearchClientError(Box::new(e)))?;
         Ok(Self {
             meilisearch_client: client,
         })
@@ -81,7 +81,7 @@ impl LegalDocumentsRegistory {
         index
             .add_documents(data, Some(REGISTORY_ID_NAME))
             .await
-            .map_err(|_| LawscapeCoreError::MeilisearchIndexError)?;
+            .map_err(|e| LawscapeCoreError::MeilisearchIndexError(Box::new(e)))?;
         Ok(())
     }
 
