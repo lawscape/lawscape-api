@@ -14,7 +14,7 @@ pub enum LawscapeCoreError {
     MeilisearchClientError,
     #[error("meilisearch index error")]
     MeilisearchIndexError,
-    #[error("meilisearch client error")]
+    #[error("meilisearch client error; {0}")]
     MeilisearchSearchError(Box<dyn std::error::Error + Send + Sync>),
 }
 
