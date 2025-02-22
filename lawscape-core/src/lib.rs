@@ -85,20 +85,20 @@ impl LegalDocumentsRegistory {
         Ok(())
     }
 
-    /// 検索用レジストリから値を取得する。cancell_scoreは打ち切り値。
+    /// 検索用レジストリから値を取得する。cancel_scoreは打ち切り値。
     pub async fn search(
         &self,
         word: &str,
         limit: usize,
-        cancell_score: f64,
-    ) -> Result<Vec<LegalDocument>, LawscapeCoreError> {
+        cancel_score: f64,
+    ) -> Result<Vec<LegalDocumentSearchResult>, LawscapeCoreError> {
         let index = self.meilisearch_client.index(REGISTORY_INDEX_NAME);
         let mut result = index
             .search()
             .with_query(word)
             .with_limit(limit)
             .with_locales(&["jpn"])
-            .with_ranking_score_threshold(cancell_score)
+            .with_ranking_score_threshold(cancel_score)
             .execute::<LegalDocument>()
             .await
             .map_err(|e| LawscapeCoreError::MeilisearchSearchError(Box::new(e)))?
@@ -107,16 +107,25 @@ impl LegalDocumentsRegistory {
         let document_list = result
             .iter()
             .take(limit)
-            .map(|search_result| search_result.clone().result)
+            .map(|search_result| LegalDocumentSearchResult {
+                document: search_result.clone().result,
+                score: search_result.ranking_score,
+            })
             .collect();
         Ok(document_list)
     }
 }
 
-#[derive(Debug, Clone, Hash, PartialEq, Eq, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct LegalDocumentSearchResult {
+    pub score: Option<f64>,
+    pub document: LegalDocument,
+}
+
+#[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct LegalDocumentDependencies {
     /// 同じ法令に含まれる法令文書など。判例の場合は通常一つ。
-    pub contents: Vec<LegalDocument>,
+    pub contents: Vec<LegalDocumentSearchResult>,
     /// 参照している法令文書
     pub parents: Vec<String>,
     /// 参照されている法令文書
@@ -124,11 +133,11 @@ pub struct LegalDocumentDependencies {
 }
 
 pub fn analyze_search_result_dependencies(
-    legal_documents: &[LegalDocument],
+    legal_documents: &[LegalDocumentSearchResult],
 ) -> HashMap<String, LegalDocumentDependencies> {
     let mut id_list = legal_documents
         .iter()
-        .map(|d| d.get_id())
+        .map(|d| d.document.get_id())
         .collect::<Vec<String>>();
     id_list.sort();
     id_list.dedup();
@@ -136,10 +145,10 @@ pub fn analyze_search_result_dependencies(
     for id in id_list.iter() {
         let documents = legal_documents
             .iter()
-            .filter(|d| &d.get_id() == id)
+            .filter(|d| &d.document.get_id() == id)
             .cloned()
             .collect::<Vec<_>>();
-        let document = documents.first();
+        let document = documents.first().map(|d| d.document.clone());
         let name = match document {
             Some(LegalDocument::Law(l)) => Some(l.name.clone()),
             _ => None,
@@ -163,7 +172,7 @@ pub fn analyze_search_result_dependencies(
                     if is_contains {
                         break;
                     }
-                    is_contains = document2.get_text().contains(name);
+                    is_contains = document2.document.get_text().contains(name);
                 }
                 if is_contains {
                     // idが親でid2が子にあたる

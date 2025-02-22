@@ -26,7 +26,7 @@ struct AppArg {
     pub limit: usize,
     /// 探索を打ち切る閾値
     #[arg(long)]
-    pub search_cancell_score: f64,
+    pub search_cancel_score: f64,
 }
 
 fn main() -> Result<(), Box<dyn std::error::Error>> {
@@ -48,7 +48,7 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
             app_args.meilisearch_url,
             app_args.meilisearch_master_key,
             app_args.limit,
-            app_args.search_cancell_score,
+            app_args.search_cancel_score,
         ))
         .map_err(|_| ApiServerError::TokioRuntime)?;
     Ok(())

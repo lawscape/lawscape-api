@@ -22,7 +22,7 @@ pub async fn app(
     meilisearch_url: String,
     meilisearch_master_key: String,
     default_limit: usize,
-    default_search_cancell_score: f64,
+    default_search_cancel_score: f64,
 ) -> Result<(), ApiServerError> {
     init_logger().await?;
 
@@ -43,18 +43,18 @@ pub async fn app(
                     .get("limit")
                     .and_then(|s| s.parse::<usize>().ok())
                     .unwrap_or(default_limit);
-                let search_cancell_score = query
+                let search_cancel_score = query
                     .0
-                    .get("cancell_score")
+                    .get("cancel_score")
                     .and_then(|s| s.parse::<f64>().ok())
-                    .unwrap_or(default_search_cancell_score);
-                info!("GET /v1/search: {search_word}, cancell_score: {search_cancell_score}, limit: {limit}");
+                    .unwrap_or(default_search_cancel_score);
+                info!("GET /v1/search: {search_word}, cancel_score: {search_cancel_score}, limit: {limit}");
                 v1_get_search(
                     search_word,
                     meilisearch_url,
                     meilisearch_master_key,
                     limit,
-                    search_cancell_score,
+                    search_cancel_score,
                 )
             }),
         )
@@ -83,7 +83,7 @@ async fn v1_get_search(
     meilisearch_url: String,
     meilisearch_master_key: String,
     limit: usize,
-    search_cancell_score: f64,
+    search_cancel_score: f64,
 ) -> Result<Json<Vec<LegalDocumentDependencies>>, ApiServerError> {
     let search_registry = LegalDocumentsRegistory::new(&meilisearch_url, &meilisearch_master_key)
         .map_err(|e| {
@@ -95,7 +95,7 @@ async fn v1_get_search(
         Err(ApiServerError::SearchError)
     } else {
         let search_result = search_registry
-            .search(&word, limit, search_cancell_score)
+            .search(&word, limit, search_cancel_score)
             .await
             .map_err(|e| {
                 error!("failed at search; {e}");
