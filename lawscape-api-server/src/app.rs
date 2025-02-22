@@ -48,7 +48,7 @@ pub async fn app(
                     .get("cancell_score")
                     .and_then(|s| s.parse::<f64>().ok())
                     .unwrap_or(default_search_cancell_score);
-                info!("GET /v1/search: {search_word}");
+                info!("GET /v1/search: {search_word}, cancell_score: {search_cancell_score}, limit: {limit}");
                 v1_get_search(
                     search_word,
                     meilisearch_url,
