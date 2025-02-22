@@ -89,13 +89,14 @@ impl LegalDocumentsRegistory {
     pub async fn search(
         &self,
         word: &str,
+        limit: usize,
         cancell_score: f64,
     ) -> Result<Vec<LegalDocument>, LawscapeCoreError> {
         let index = self.meilisearch_client.index(REGISTORY_INDEX_NAME);
         let mut result = index
             .search()
             .with_query(word)
-            .with_limit(100000)
+            .with_limit(limit)
             .with_locales(&["jpn"])
             .with_ranking_score_threshold(cancell_score)
             .execute::<LegalDocument>()

@@ -5,7 +5,7 @@ use reqwest::header::CONTENT_TYPE;
 use std::collections::HashMap;
 use std::net::SocketAddr;
 use tower_http::cors::{Any, CorsLayer};
-use tracing::info;
+use tracing::{error, info};
 
 /// ログを出力するための設定など
 async fn init_logger() -> Result<(), ApiServerError> {
@@ -21,7 +21,8 @@ pub async fn app(
     bind: SocketAddr,
     meilisearch_url: String,
     meilisearch_master_key: String,
-    search_cancell_score: f64,
+    default_limit: usize,
+    default_search_cancell_score: f64,
 ) -> Result<(), ApiServerError> {
     init_logger().await?;
 
@@ -37,11 +38,22 @@ pub async fn app(
             "/v1/search",
             get(move |query: Query<HashMap<String, String>>| {
                 let search_word = query.0.get("word").cloned().unwrap_or_default();
+                let limit = query
+                    .0
+                    .get("limit")
+                    .and_then(|s| s.parse::<usize>().ok())
+                    .unwrap_or(default_limit);
+                let search_cancell_score = query
+                    .0
+                    .get("cancell_score")
+                    .and_then(|s| s.parse::<f64>().ok())
+                    .unwrap_or(default_search_cancell_score);
                 info!("GET /v1/search: {search_word}");
                 v1_get_search(
                     search_word,
                     meilisearch_url,
                     meilisearch_master_key,
+                    limit,
                     search_cancell_score,
                 )
             }),
@@ -70,17 +82,25 @@ async fn v1_get_search(
     word: String,
     meilisearch_url: String,
     meilisearch_master_key: String,
+    limit: usize,
     search_cancell_score: f64,
 ) -> Result<Json<Vec<LegalDocumentDependencies>>, ApiServerError> {
     let search_registry = LegalDocumentsRegistory::new(&meilisearch_url, &meilisearch_master_key)
-        .map_err(|_| ApiServerError::MeilisearchError)?;
+        .map_err(|e| {
+        error!("failed at LegalDocumentsRegistory::new; {e}");
+        ApiServerError::MeilisearchError
+    })?;
     if word.is_empty() {
+        error!("search word is empty");
         Err(ApiServerError::SearchError)
     } else {
         let search_result = search_registry
-            .search(&word, search_cancell_score)
+            .search(&word, limit, search_cancell_score)
             .await
-            .map_err(|_| ApiServerError::SearchError)?;
+            .map_err(|e| {
+                error!("failed at search; {e}");
+                ApiServerError::SearchError
+            })?;
         let dependencies_result = lawscape_core::analyze_search_result_dependencies(&search_result);
         let result = dependencies_result
             .values()
