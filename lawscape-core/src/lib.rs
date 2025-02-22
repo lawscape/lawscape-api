@@ -8,14 +8,14 @@ use serde::{Deserialize, Serialize};
 use std::collections::HashMap;
 use thiserror::Error;
 
-#[derive(Debug, Clone, Error)]
+#[derive(Debug, Error)]
 pub enum LawscapeCoreError {
     #[error("meilisearch client error")]
     MeilisearchClientError,
     #[error("meilisearch index error")]
     MeilisearchIndexError,
     #[error("meilisearch client error")]
-    MeilisearchSearchError,
+    MeilisearchSearchError(Box<dyn std::error::Error + Send + Sync>),
 }
 
 #[derive(Debug, Clone, Deserialize, Serialize, Hash, PartialEq, Eq)]
@@ -101,7 +101,7 @@ impl LegalDocumentsRegistory {
             .with_ranking_score_threshold(cancell_score)
             .execute::<LegalDocument>()
             .await
-            .map_err(|_| LawscapeCoreError::MeilisearchSearchError)?
+            .map_err(|e| LawscapeCoreError::MeilisearchSearchError(Box::new(e)))?
             .hits;
         result.sort_by(|t1, t2| t2.ranking_score.partial_cmp(&t1.ranking_score).unwrap());
         let document_list = result
